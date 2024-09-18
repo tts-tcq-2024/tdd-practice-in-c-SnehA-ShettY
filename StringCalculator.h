@@ -1,31 +1,80 @@
-#ifndef STRINGCALCULATOR_H
-#define STRINGCALCULATOR_H
+using System;
+using System.Linq;
+
 public class StringCalculator
 {
     public int Add(string input)
     {
-        // Implementation for Add method goes here
+        if (string.IsNullOrEmpty(input))
+        {
+            return 0;
+        }
+
+        string updatedInput = FindDelimiter(input);
+
+        // Find and sum up the numbers
+        int sum = FindSum(updatedInput);
+
+        // Check for negative numbers
+        FindNegatives(updatedInput);
+
+        return sum;
     }
 
-    public int AddOfNum(string input)
+    private string ReplaceWithCommas(string input, string delimiter)
     {
-        // Implementation for AddOfNum method goes here
+        string numbersStr = input;
+        numbersStr = new string(numbersStr.Select(c => (c == '\n' || delimiter.Contains(c)) ? ',' : c).ToArray());
+        return numbersStr;
     }
 
-    public void VerifyNegativeNum(string input)
+    private string FindDelimiter(string input)
     {
-        // Implementation for VerifyNegativeNum method goes here
+        string delimiter = ",";
+        string numbersStr = input;
+
+        if (input.StartsWith("//"))
+        {
+            int delimiterPos = input.IndexOf('\n');
+            if (delimiterPos != -1)
+            {
+                delimiter = input.Substring(2, delimiterPos - 2);
+                numbersStr = input.Substring(delimiterPos + 1);
+            }
+        }
+
+        return ReplaceWithCommas(numbersStr, delimiter);
     }
 
-    public string NormalizeDelimiters(string input)
+    private void FindNegatives(string updatedInput)
     {
-        // Implementation for NormalizeDelimiters method goes here
+        var segments = updatedInput.Split(',');
+
+        var negativeNumbers = segments
+            .Where(segment => int.Parse(segment) < 0)
+            .Select(int.Parse)
+            .ToList();
+
+        if (negativeNumbers.Any())
+        {
+            throw new InvalidOperationException("negatives not allowed: " + string.Join(", ", negativeNumbers));
+        }
     }
 
-    public string NewlineCheck(string input)
+    private int FindSum(string updatedInput)
     {
-        // Implementation for NewlineCheck method goes here
+        var segments = updatedInput.Split(',');
+        int sum = 0;
+
+        foreach (var segment in segments)
+        {
+            int number = int.Parse(segment);
+            if (number <= 1000)
+            {
+                sum += number;
+            }
+        }
+
+        return sum;
     }
 }
-
-#endif
