@@ -96,9 +96,4 @@ int add(const char* input) {
     return CalculateSum(updatedinput);
 }
 
-int main() {
-    // Test cases
-    printf("Sum: %d\n", add("1\n2,3"));
-    printf("Sum: %d\n", add("//;\n1;2"));
-    return 0;
-}
+
