@@ -5,71 +5,60 @@
 
 #define MAX_STRING_LENGTH 1000
 
+// Utility function to check if a character is a delimiter or newline
+int IsDelimiterOrNewline(char c, const char* delimiter) {
+    return (c == '\n' || strchr(delimiter, c) != NULL);
+}
+
 // Function to replace newline or delimiter with commas
-void ReplaceWithCommas(char* input, const char* delimiter, char* result) {
-    int i = 0;
+void ReplaceWithCommas(const char* input, const char* delimiter, char* result) {
     while (*input) {
-        if (*input == '\n' || strchr(delimiter, *input)) {
-            result[i++] = ',';
-        } else {
-            result[i++] = *input;
-        }
+        *result++ = IsDelimiterOrNewline(*input, delimiter) ? ',' : *input;
         input++;
     }
-    result[i] = '\0';
+    *result = '\0';
+}
+
+// Helper function to extract custom delimiter
+void ExtractCustomDelimiter(const char* input, char* delimiter, char* numbersStr) {
+    const char* delimiterPos = strchr(input, '\n');
+    if (delimiterPos) {
+        strncpy(delimiter, input + 2, delimiterPos - input - 2);
+        delimiter[delimiterPos - input - 2] = '\0';
+        strcpy(numbersStr, delimiterPos + 1);
+    }
 }
 
 // Function to find and process the delimiter
 void FindDelimiter(const char* input, char* delimiter, char* numbersStr) {
     strcpy(delimiter, ","); // Default delimiter
     if (strncmp(input, "//", 2) == 0) {
-        const char* delimiterPos = strchr(input, '\n');
-        if (delimiterPos) {
-            strncpy(delimiter, input + 2, delimiterPos - input - 2);
-            delimiter[delimiterPos - input - 2] = '\0';
-            strcpy(numbersStr, delimiterPos + 1);
-        }
+        ExtractCustomDelimiter(input, delimiter, numbersStr);
     } else {
         strcpy(numbersStr, input);
     }
-    char temp[MAX_STRING_LENGTH];
-    ReplaceWithCommas(numbersStr, delimiter, temp);
-    strcpy(numbersStr, temp);
+    ReplaceWithCommas(numbersStr, delimiter, numbersStr);
 }
 
-// Function to find negatives in the input
-void FindNegatives(const char* updatedinput) {
+// Function to validate and parse tokens, including finding negatives
+int ParseAndSum(const char* updatedinput, int* sum) {
     char* token;
     char inputCopy[MAX_STRING_LENGTH];
     strcpy(inputCopy, updatedinput);
-    token = strtok(inputCopy, ",");
 
+    token = strtok(inputCopy, ",");
     while (token != NULL) {
         int number = atoi(token);
         if (number < 0) {
             printf("Error: Negatives not allowed\n");
-            exit(1);
+            return 1; // Error code for negatives found
         }
-        token = strtok(NULL, ",");
-    }
-}
-
-// Function to calculate the sum
-int FindSum(const char* updatedinput) {
-    int sum = 0;
-    char* token;
-    char inputCopy[MAX_STRING_LENGTH];
-    strcpy(inputCopy, updatedinput);
-
-    token = strtok(inputCopy, ",");
-    while (token != NULL) {
-        int number = atoi(token);
         if (number <= 1000) {
-            sum += number;
+            *sum += number;
         }
         token = strtok(NULL, ",");
     }
-    return sum;
+    return 0; // No negatives found
 }
 
 // Main add function
@@ -80,11 +69,15 @@ int add(const char* input) {
 
     char updatedinput[MAX_STRING_LENGTH];
     char delimiter[MAX_STRING_LENGTH];
+    int sum = 0;
+
     FindDelimiter(input, delimiter, updatedinput);
 
-    FindNegatives(updatedinput);
+    if (ParseAndSum(updatedinput, &sum) != 0) {
+        exit(1); // Exit if negatives are found
+    }
 
-    return FindSum(updatedinput);
+    return sum;
 }
 
 int main() {
