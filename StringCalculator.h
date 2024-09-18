@@ -1,80 +1,95 @@
-using System;
-using System.Linq;
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
 
-public class StringCalculator
-{
-    public int Add(string input)
-    {
-        if (string.IsNullOrEmpty(input))
-        {
-            return 0;
+#define MAX_STRING_LENGTH 1000
+
+// Function to replace newline or delimiter with commas
+void ReplaceWithCommas(char* input, const char* delimiter, char* result) {
+    int i = 0;
+    while (*input) {
+        if (*input == '\n' || strchr(delimiter, *input)) {
+            result[i++] = ',';
+        } else {
+            result[i++] = *input;
         }
-
-        string updatedInput = FindDelimiter(input);
-
-        // Find and sum up the numbers
-        int sum = FindSum(updatedInput);
-
-        // Check for negative numbers
-        FindNegatives(updatedInput);
-
-        return sum;
+        input++;
     }
+    result[i] = '\0';
+}
 
-    private string ReplaceWithCommas(string input, string delimiter)
-    {
-        string numbersStr = input;
-        numbersStr = new string(numbersStr.Select(c => (c == '\n' || delimiter.Contains(c)) ? ',' : c).ToArray());
-        return numbersStr;
-    }
-
-    private string FindDelimiter(string input)
-    {
-        string delimiter = ",";
-        string numbersStr = input;
-
-        if (input.StartsWith("//"))
-        {
-            int delimiterPos = input.IndexOf('\n');
-            if (delimiterPos != -1)
-            {
-                delimiter = input.Substring(2, delimiterPos - 2);
-                numbersStr = input.Substring(delimiterPos + 1);
-            }
+// Function to find and process the delimiter
+void FindDelimiter(const char* input, char* delimiter, char* numbersStr) {
+    strcpy(delimiter, ","); // Default delimiter
+    if (strncmp(input, "//", 2) == 0) {
+        const char* delimiterPos = strchr(input, '\n');
+        if (delimiterPos) {
+            strncpy(delimiter, input + 2, delimiterPos - input - 2);
+            delimiter[delimiterPos - input - 2] = '\0';
+            strcpy(numbersStr, delimiterPos + 1);
         }
-
-        return ReplaceWithCommas(numbersStr, delimiter);
+    } else {
+        strcpy(numbersStr, input);
     }
+    char temp[MAX_STRING_LENGTH];
+    ReplaceWithCommas(numbersStr, delimiter, temp);
+    strcpy(numbersStr, temp);
+}
 
-    private void FindNegatives(string updatedInput)
-    {
-        var segments = updatedInput.Split(',');
+// Function to find negatives in the input
+void FindNegatives(const char* updatedinput) {
+    char* token;
+    char inputCopy[MAX_STRING_LENGTH];
+    strcpy(inputCopy, updatedinput);
+    token = strtok(inputCopy, ",");
 
-        var negativeNumbers = segments
-            .Where(segment => int.Parse(segment) < 0)
-            .Select(int.Parse)
-            .ToList();
-
-        if (negativeNumbers.Any())
-        {
-            throw new InvalidOperationException("negatives not allowed: " + string.Join(", ", negativeNumbers));
+    while (token != NULL) {
+        int number = atoi(token);
+        if (number < 0) {
+            printf("Error: Negatives not allowed\n");
+            exit(1);
         }
+        token = strtok(NULL, ",");
     }
+}
 
-    private int FindSum(string updatedInput)
-    {
-        var segments = updatedInput.Split(',');
-        int sum = 0;
+// Function to calculate the sum
+int FindSum(const char* updatedinput) {
+    int sum = 0;
+    char* token;
+    char inputCopy[MAX_STRING_LENGTH];
+    strcpy(inputCopy, updatedinput);
 
-        foreach (var segment in segments)
-        {
-            int number = int.Parse(segment);
-            if (number <= 1000)
-            {
-                sum += number;
-            }
+    token = strtok(inputCopy, ",");
+    while (token != NULL) {
+        int number = atoi(token);
+        if (number <= 1000) {
+            sum += number;
         }
-
-        return sum;
+        token = strtok(NULL, ",");
     }
+    return sum;
+}
+
+// Main add function
+int add(const char* input) {
+    if (strlen(input) == 0) {
+        return 0;
+    }
+
+    char updatedinput[MAX_STRING_LENGTH];
+    char delimiter[MAX_STRING_LENGTH];
+    FindDelimiter(input, delimiter, updatedinput);
+
+    FindNegatives(updatedinput);
+
+    return FindSum(updatedinput);
+}
+
+int main() {
+    // Test cases
+    printf("Sum: %d\n", add("1\n2,3"));
+    printf("Sum: %d\n", add("//;\n1;2"));
+    return 0;
 }
