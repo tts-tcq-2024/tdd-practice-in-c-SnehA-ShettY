@@ -22,17 +22,15 @@ void ReplaceWithCommas(const char* input, const char* delimiter, char* result) {
 // Helper function to extract custom delimiter
 void ExtractCustomDelimiter(const char* input, char* delimiter, char* numbersStr) {
     const char* delimiterPos = strchr(input, '\n');
-    if (delimiterPos) {
-        strncpy(delimiter, input + 2, delimiterPos - input - 2);
-        delimiter[delimiterPos - input - 2] = '\0';
-        strcpy(numbersStr, delimiterPos + 1);
-    }
+    strncpy(delimiter, input + 2, delimiterPos - input - 2);
+    delimiter[delimiterPos - input - 2] = '\0';
+    strcpy(numbersStr, delimiterPos + 1);
 }
 
 // Function to find and process the delimiter
 void FindDelimiter(const char* input, char* delimiter, char* numbersStr) {
     strcpy(delimiter, ","); // Default delimiter
-    if (strncmp(input, "//", 2) == 0) {
+    if (input[0] == '/' && input[1] == '/') {
         ExtractCustomDelimiter(input, delimiter, numbersStr);
     } else {
         strcpy(numbersStr, input);
@@ -40,10 +38,10 @@ void FindDelimiter(const char* input, char* delimiter, char* numbersStr) {
     ReplaceWithCommas(numbersStr, delimiter, numbersStr);
 }
 
-// Function to validate and parse tokens, including finding negatives
-int ParseAndSum(const char* updatedinput, int* sum) {
-    char* token;
+// Function to check for negatives and calculate the sum
+int CheckNegativesAndSum(const char* updatedinput, int* sum) {
     char inputCopy[MAX_STRING_LENGTH];
+    char* token;
     strcpy(inputCopy, updatedinput);
 
     token = strtok(inputCopy, ",");
@@ -51,14 +49,14 @@ int ParseAndSum(const char* updatedinput, int* sum) {
         int number = atoi(token);
         if (number < 0) {
             printf("Error: Negatives not allowed\n");
-            return 1; // Error code for negatives found
+            return 1; // Return 1 for error due to negatives
         }
         if (number <= 1000) {
             *sum += number;
         }
         token = strtok(NULL, ",");
     }
-    return 0; // No negatives found
+    return 0; // No error
 }
 
 // Main add function
@@ -73,7 +71,7 @@ int add(const char* input) {
 
     FindDelimiter(input, delimiter, updatedinput);
 
-    if (ParseAndSum(updatedinput, &sum) != 0) {
+    if (CheckNegativesAndSum(updatedinput, &sum) != 0) {
         exit(1); // Exit if negatives are found
     }
 
