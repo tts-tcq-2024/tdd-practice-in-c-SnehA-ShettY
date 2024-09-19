@@ -7,7 +7,7 @@
 
 // Helper function to check if a character is a delimiter or newline
 int IsDelimiter(char c, const char* delimiter) {
-    return (c == '\n' || strchr(delimiter, c) != NULL);
+    return (c == '\n' || strchr(delimiter, c) = NULL);
 }
 
 // Function to replace newline or delimiter with commas
